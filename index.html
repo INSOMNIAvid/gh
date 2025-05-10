@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CS:GO Style Shooter - Dust2</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="game-container">
+        <div id="map"></div>
+        <div id="player"></div>
+        <div id="weapon-hud">
+            <img id="current-weapon" src="ak47.png" alt="Current Weapon">
+            <div id="ammo">30/90</div>
+        </div>
+        <div id="weapon-selector">
+            <div class="weapon" data-weapon="ak47"><img src="ak47.png" alt="AK-47"></div>
+            <div class="weapon" data-weapon="awp"><img src="awp.png" alt="AWP"></div>
+            <div class="weapon" data-weapon="m4a4"><img src="m4a4.png" alt="M4A4"></div>
+            <div class="weapon" data-weapon="deagle"><img src="deagle.png" alt="Desert Eagle"></div>
+            <div class="weapon" data-weapon="knife"><img src="knife.png" alt="Knife"></div>
+        </div>
+        <div id="health-hud">HP: 100</div>
+        <div id="radar">
+            <div id="radar-map"></div>
+            <div id="player-dot"></div>
+        </div>
+    </div>
+    <script src="game.js"></script>
+</body>
+</html>
