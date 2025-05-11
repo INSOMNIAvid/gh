@@ -1,7 +1,12 @@
-body {
+* {
   margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
   overflow: hidden;
-  font-family: Arial, sans-serif;
+  font-family: 'Arial', sans-serif;
 }
 
 #game-container {
@@ -12,22 +17,29 @@ body {
 
 #hud {
   position: absolute;
-  top: 10px;
-  left: 10px;
+  top: 20px;
+  left: 20px;
   color: white;
-  background-color: rgba(0, 0, 0, 0.5);
-  padding: 10px;
+  background-color: rgba(0, 0, 0, 0.7);
+  padding: 10px 15px;
   border-radius: 5px;
+  font-size: 18px;
+  user-select: none;
+}
+
+#hud div {
+  margin: 5px 0;
 }
 
 #chat {
   position: absolute;
-  bottom: 10px;
-  left: 10px;
+  bottom: 20px;
+  left: 20px;
   width: 300px;
-  background-color: rgba(0, 0, 0, 0.5);
+  background-color: rgba(0, 0, 0, 0.7);
   border-radius: 5px;
   color: white;
+  font-size: 14px;
 }
 
 #messages {
@@ -38,10 +50,11 @@ body {
 
 #message-input {
   width: 100%;
-  padding: 8px;
-  box-sizing: border-box;
+  padding: 8px 10px;
   border: none;
   background-color: rgba(255, 255, 255, 0.9);
+  border-radius: 0 0 5px 5px;
+  outline: none;
 }
 
 #weapon {
@@ -50,8 +63,12 @@ body {
   right: 20px;
   width: 200px;
   height: 150px;
-  background-image: url('assets/textures/weapon.png');
   background-size: contain;
   background-repeat: no-repeat;
   background-position: center;
+  pointer-events: none;
+}
+
+#death-screen {
+  z-index: 100;
 }
