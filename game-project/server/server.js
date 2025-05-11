@@ -1,12 +1,12 @@
-const express = require('express');
-const socketio = require('socket.io');
-const http = require('http');
-const GameManager = require('./game-manager');
-const { SOCKET_EVENTS } = require('../shared/constants');
+import express from 'express';
+import { createServer } from 'http';
+import { Server } from 'socket.io';
+import GameManager from './game-manager.js';
+import { SOCKET_EVENTS } from '../shared/constants.js';
 
 const app = express();
-const server = http.createServer(app);
-const io = socketio(server, {
+const server = createServer(app);
+const io = new Server(server, {
   cors: {
     origin: "*",
     methods: ["GET", "POST"]
@@ -16,9 +16,9 @@ const io = socketio(server, {
 const gameManager = new GameManager();
 
 io.on(SOCKET_EVENTS.CONNECT, (socket) => {
-  console.log('New player connected:', socket.id);
+  console.log('Player connected:', socket.id);
   
-  // Инициализация игрока
+  // Добавление игрока в игру
   const player = gameManager.addPlayer(socket);
   
   // Отправка начального состояния игры
@@ -30,7 +30,7 @@ io.on(SOCKET_EVENTS.CONNECT, (socket) => {
     mapSize: MAP_SIZE
   });
   
-  // Оповещение других игроков
+  // Уведомление других игроков
   socket.broadcast.emit(SOCKET_EVENTS.PLAYER_JOINED, player);
   
   // Обработчики событий
@@ -43,11 +43,7 @@ io.on(SOCKET_EVENTS.CONNECT, (socket) => {
   });
   
   socket.on(SOCKET_EVENTS.PLAYER_SHOOT, (data) => {
-    const bullet = gameManager.addBullet({
-      owner: socket.id,
-      ...data
-    });
-    
+    const bullet = gameManager.handlePlayerShoot(socket.id, data);
     if (bullet) {
       io.emit(SOCKET_EVENTS.BULLET_FIRED, bullet);
     }
