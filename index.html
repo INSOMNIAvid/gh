@@ -1,363 +1,152 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Advanced CS:GO Style Shooter - Dust2</title>
+    <title>JS Shooter Prototype</title>
     <style>
-        body { 
-            margin: 0; 
-            overflow: hidden; 
-            font-family: 'Arial', sans-serif;
-            color: white;
-            user-select: none;
-        }
-        canvas { 
-            display: block; 
-        }
-        #ui-container {
+        body { margin: 0; overflow: hidden; font-family: 'Arial', sans-serif; }
+        canvas { display: block; }
+        #menu {
             position: absolute;
-            top: 0;
-            left: 0;
             width: 100%;
             height: 100%;
-            pointer-events: none;
-        }
-        #info-panel {
-            position: absolute;
-            top: 10px;
-            left: 10px;
-            background: rgba(0,0,0,0.6);
-            padding: 10px;
-            border-radius: 5px;
-            font-size: 14px;
-        }
-        #weapon-hud {
-            position: absolute;
-            bottom: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            text-align: center;
-            background: rgba(0,0,0,0.6);
-            padding: 10px;
-            border-radius: 5px;
-            min-width: 200px;
-        }
-        #weapon-hud img {
-            height: 120px;
-            margin-bottom: -20px;
-            image-rendering: crisp-edges;
-        }
-        #ammo-display {
-            font-size: 24px;
-            font-weight: bold;
-            margin-top: -10px;
-        }
-        #health-armor {
-            position: absolute;
-            bottom: 20px;
-            left: 20px;
-            background: rgba(0,0,0,0.6);
-            padding: 10px;
-            border-radius: 5px;
+            background: url('https://images.unsplash.com/photo-1542751371-adc38448a05e?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80') no-repeat center center;
+            background-size: cover;
+            color: white;
             display: flex;
-            gap: 15px;
-        }
-        .stat {
-            display: flex;
-            align-items: center;
-            gap: 5px;
-        }
-        .stat img {
-            width: 24px;
-            height: 24px;
-        }
-        #weapon-selector {
-            position: absolute;
-            bottom: 100px;
-            left: 50%;
-            transform: translateX(-50%);
-            display: flex;
-            gap: 10px;
-            background: rgba(0,0,0,0.6);
-            padding: 10px;
-            border-radius: 5px;
-            pointer-events: auto;
-        }
-        .weapon-option {
-            width: 80px;
-            height: 60px;
-            background: rgba(255,255,255,0.1);
-            border: 2px solid rgba(255,255,255,0.3);
-            border-radius: 5px;
-            display: flex;
+            flex-direction: column;
             justify-content: center;
             align-items: center;
+            text-align: center;
+        }
+        #menu h1 {
+            font-size: 72px;
+            text-shadow: 2px 2px 4px #000;
+            margin-bottom: 20px;
+        }
+        #menu-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        .menu-btn {
+            padding: 15px 30px;
+            font-size: 20px;
+            background: linear-gradient(to right, #f0a30a, #e67e22);
+            color: white;
+            border: none;
+            border-radius: 5px;
             cursor: pointer;
-            transition: all 0.2s;
+            transition: all 0.3s;
+            text-transform: uppercase;
+            letter-spacing: 1px;
         }
-        .weapon-option:hover {
-            background: rgba(255,255,255,0.2);
+        .menu-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
         }
-        .weapon-option.selected {
-            background: rgba(76,175,80,0.5);
-            border-color: rgba(76,175,80,0.9);
+        #hud {
+            position: absolute;
+            bottom: 20px;
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            color: white;
+            padding: 0 20px;
+            box-sizing: border-box;
         }
-        .weapon-option img {
-            max-width: 70px;
-            max-height: 50px;
+        .hud-panel {
+            background: rgba(0,0,0,0.5);
+            padding: 10px 20px;
+            border-radius: 5px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        #health-bar {
+            width: 200px;
+            height: 20px;
+            background: rgba(255,0,0,0.3);
+            border-radius: 3px;
+            overflow: hidden;
+        }
+        #health-fill {
+            height: 100%;
+            width: 100%;
+            background: linear-gradient(to right, #ff0000, #00ff00);
+            transition: width 0.3s;
         }
         #crosshair {
             position: absolute;
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            width: 24px;
-            height: 24px;
-            pointer-events: none;
-        }
-        #crosshair-inner {
-            width: 4px;
-            height: 4px;
-            background: rgba(255,255,255,0.8);
-            border-radius: 50%;
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-        }
-        #crosshair-h {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            width: 12px;
-            height: 2px;
-            background: rgba(255,255,255,0.8);
-            transform: translate(-50%, -50%);
-        }
-        #crosshair-v {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            width: 2px;
-            height: 12px;
-            background: rgba(255,255,255,0.8);
-            transform: translate(-50%, -50%);
-        }
-        #enemy-counter {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            background: rgba(0,0,0,0.6);
-            padding: 10px;
-            border-radius: 5px;
-            display: flex;
-            align-items: center;
-            gap: 5px;
-        }
-        #enemy-counter img {
             width: 20px;
             height: 20px;
+            pointer-events: none;
+        }
+        #crosshair::before, #crosshair::after {
+            content: '';
+            position: absolute;
+            background: rgba(255,255,255,0.8);
+        }
+        #crosshair::before {
+            width: 2px;
+            height: 20px;
+            left: 9px;
+            top: 0;
+        }
+        #crosshair::after {
+            width: 20px;
+            height: 2px;
+            left: 0;
+            top: 9px;
         }
         #kill-feed {
             position: absolute;
-            top: 50px;
-            right: 10px;
-            width: 200px;
+            top: 20px;
+            right: 20px;
             display: flex;
             flex-direction: column;
             gap: 5px;
         }
         .kill-message {
-            background: rgba(0,0,0,0.6);
+            background: rgba(0,0,0,0.7);
             padding: 5px 10px;
             border-radius: 3px;
-            font-size: 14px;
-            text-align: right;
-            animation: fadeIn 0.3s;
-        }
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateX(20px); }
-            to { opacity: 1; transform: translateX(0); }
-        }
-        #game-menu {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.8);
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            z-index: 100;
-        }
-        #game-menu h1 {
-            font-size: 48px;
-            margin-bottom: 40px;
-            color: #f0a800;
-            text-shadow: 0 0 10px rgba(240,168,0,0.5);
-        }
-        .menu-button {
-            background: linear-gradient(to bottom, #3a3a3a, #1a1a1a);
-            border: 2px solid #f0a800;
             color: white;
-            padding: 15px 30px;
-            font-size: 18px;
-            border-radius: 5px;
-            cursor: pointer;
-            margin: 10px;
-            width: 200px;
-            text-align: center;
-            transition: all 0.2s;
-        }
-        .menu-button:hover {
-            background: linear-gradient(to bottom, #4a4a4a, #2a2a2a);
-            border-color: #ffc800;
-            transform: scale(1.05);
-        }
-        #hit-marker {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            width: 30px;
-            height: 30px;
-            transform: translate(-50%, -50%);
-            opacity: 0;
-            pointer-events: none;
-        }
-        #blood-effect {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(255,0,0,0);
-            pointer-events: none;
-            transition: background 0.3s;
-        }
-        #radar {
-            position: absolute;
-            top: 20px;
-            left: 20px;
-            width: 120px;
-            height: 120px;
-            background: rgba(0,0,0,0.6);
-            border: 2px solid #4CAF50;
-            border-radius: 50%;
-            overflow: hidden;
-        }
-        #radar-container {
-            width: 100%;
-            height: 100%;
-            position: relative;
-        }
-        #radar-map {
-            width: 100%;
-            height: 100%;
-            background-image: url('assets/dust2_radar.png');
-            background-size: cover;
-            opacity: 0.7;
-        }
-        #radar-player {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            width: 6px;
-            height: 6px;
-            background-color: #4CAF50;
-            border-radius: 50%;
-            transform: translate(-50%, -50%);
-        }
-        #radar-enemies {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-        }
-        .radar-enemy {
-            position: absolute;
-            width: 4px;
-            height: 4px;
-            background-color: red;
-            border-radius: 50%;
-            transform: translate(-50%, -50%);
+            font-size: 14px;
         }
     </style>
 </head>
 <body>
-    <div id="ui-container">
-        <div id="info-panel">WASD - Движение | SPACE - Прыжок | 1-5 - Смена оружия | ЛКМ - Стрельба | R - Перезарядка</div>
-        
-        <div id="weapon-hud">
-            <img id="current-weapon-img" src="assets/weapons/ak47.png" alt="Weapon">
-            <div id="ammo-display">30/90</div>
-        </div>
-        
-        <div id="health-armor">
-            <div class="stat">
-                <img src="assets/icons/health.png" alt="Health">
-                <span id="health-value">100</span>
-            </div>
-            <div class="stat">
-                <img src="assets/icons/armor.png" alt="Armor">
-                <span id="armor-value">100</span>
-            </div>
-        </div>
-        
-        <div id="weapon-selector">
-            <div class="weapon-option selected" data-weapon="ak47"><img src="assets/weapons/ak47.png" alt="AK-47"></div>
-            <div class="weapon-option" data-weapon="awp"><img src="assets/weapons/awp.png" alt="AWP"></div>
-            <div class="weapon-option" data-weapon="m4a4"><img src="assets/weapons/m4a4.png" alt="M4A4"></div>
-            <div class="weapon-option" data-weapon="deagle"><img src="assets/weapons/deagle.png" alt="Deagle"></div>
-            <div class="weapon-option" data-weapon="knife"><img src="assets/weapons/knife.png" alt="Knife"></div>
-        </div>
-        
-        <div id="crosshair">
-            <div id="crosshair-inner"></div>
-            <div id="crosshair-h"></div>
-            <div id="crosshair-v"></div>
-        </div>
-        
-        <div id="enemy-counter">
-            <img src="assets/icons/enemy.png" alt="Enemies">
-            <span id="enemy-count">5</span>
-        </div>
-        
-        <div id="kill-feed"></div>
-        
-        <div id="hit-marker">
-            <svg viewBox="0 0 100 100" width="30" height="30">
-                <line x1="20" y1="20" x2="40" y2="40" stroke="white" stroke-width="4"/>
-                <line x1="60" y1="20" x2="80" y2="40" stroke="white" stroke-width="4"/>
-                <line x1="20" y1="80" x2="40" y2="60" stroke="white" stroke-width="4"/>
-                <line x1="60" y1="80" x2="80" y2="60" stroke="white" stroke-width="4"/>
-            </svg>
-        </div>
-        
-        <div id="blood-effect"></div>
-        
-        <div id="radar">
-            <div id="radar-container">
-                <div id="radar-map"></div>
-                <div id="radar-player"></div>
-                <div id="radar-enemies"></div>
-            </div>
+    <div id="menu">
+        <h1>JS TACTICAL</h1>
+        <div id="menu-buttons">
+            <button class="menu-btn" id="play-btn">PLAY</button>
+            <button class="menu-btn" id="settings-btn">SETTINGS</button>
+            <button class="menu-btn" id="exit-btn">EXIT</button>
         </div>
     </div>
     
-    <div id="game-menu">
-        <h1>CS:GO STYLE SHOOTER</h1>
-        <div class="menu-button" id="start-game">НАЧАТЬ ИГРУ</div>
-        <div class="menu-button" id="controls">УПРАВЛЕНИЕ</div>
-        <div class="menu-button" id="exit-game">ВЫХОД</div>
+    <div id="hud">
+        <div class="hud-panel">
+            <div id="health-bar">
+                <div id="health-fill"></div>
+            </div>
+            <span id="health-text">100 HP</span>
+        </div>
+        <div class="hud-panel">
+            <span id="ammo">30 / 90</span>
+        </div>
     </div>
-
+    
+    <div id="crosshair"></div>
+    
+    <div id="kill-feed"></div>
+    
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.7.1/gsap.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/cannon.js/0.6.2/cannon.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/howler/2.2.3/howler.min.js"></script>
     <script src="game.js"></script>
 </body>
 </html>
