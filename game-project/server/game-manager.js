@@ -1,12 +1,18 @@
-const { MAP_SIZE, PLAYER_HEALTH, WEAPONS } = require('../shared/constants');
+import { 
+  MAP_SIZE, 
+  PLAYER_HEALTH, 
+  WEAPONS, 
+  SOCKET_EVENTS,
+  TEAMS
+} from '../shared/constants.js';
 
-class GameManager {
+export default class GameManager {
   constructor() {
     this.players = {};
     this.bullets = [];
     this.obstacles = this.generateObstacles();
     this.doors = this.generateDoors();
-    this.gameTime = 0;
+    this.lastUpdateTime = Date.now();
     this.gameLoop();
   }
 
@@ -44,38 +50,22 @@ class GameManager {
   }
 
   getSpawnPoint() {
-    let x, z;
-    let validPosition = false;
-    let attempts = 0;
-    
-    while (!validPosition && attempts < 100) {
-      x = Math.random() * MAP_SIZE;
-      z = Math.random() * MAP_SIZE;
-      validPosition = true;
-      
-      // Проверка столкновений с препятствиями
-      for (const obstacle of this.obstacles) {
-        if (this.checkCollision(
-          { x, z, width: 1, height: 1 },
-          obstacle
-        )) {
-          validPosition = false;
-          break;
-        }
-      }
-      
-      attempts++;
-    }
-    
-    return { x: x || 10, y: 0, z: z || 10 };
+    // Логика безопасного спавна (упрощенная версия)
+    return {
+      x: 10 + Math.random() * (MAP_SIZE - 20),
+      y: 0,
+      z: 10 + Math.random() * (MAP_SIZE - 20)
+    };
   }
 
   assignTeam() {
-    const teamCounts = { red: 0, blue: 0 };
+    const teamCounts = { [TEAMS.RED]: 0, [TEAMS.BLUE]: 0 };
+    
     Object.values(this.players).forEach(player => {
       teamCounts[player.team]++;
     });
-    return teamCounts.red <= teamCounts.blue ? 'red' : 'blue';
+    
+    return teamCounts[TEAMS.RED] <= teamCounts[TEAMS.BLUE] ? TEAMS.RED : TEAMS.BLUE;
   }
 
   updatePlayerPosition(playerId, positionData) {
@@ -87,8 +77,8 @@ class GameManager {
     }
   }
 
-  addBullet(bulletData) {
-    const player = this.players[bulletData.owner];
+  handlePlayerShoot(playerId, shootData) {
+    const player = this.players[playerId];
     if (!player || player.ammo <= 0) return null;
     
     player.ammo--;
@@ -97,9 +87,9 @@ class GameManager {
       id: Math.random().toString(36).substr(2, 9),
       x: player.x,
       z: player.z,
-      rotation: bulletData.rotation,
+      rotation: shootData.rotation,
       speed: WEAPONS[player.weapon].bulletSpeed,
-      owner: player.id,
+      owner: playerId,
       damage: WEAPONS[player.weapon].damage,
       lifetime: 2000 // 2 секунды
     };
@@ -153,29 +143,17 @@ class GameManager {
     const shooter = this.players[shooterId];
     
     if (target && shooter) {
-      target.health -= damage;
+      target.health = Math.max(0, target.health - damage);
       
       if (target.health <= 0) {
-        target.health = 0;
         target.deaths++;
         shooter.kills++;
         shooter.score += 100;
-        
-        // Респавн игрока через 5 секунд
-        setTimeout(() => {
-          if (this.players[targetId]) {
-            const spawnPoint = this.getSpawnPoint();
-            target.x = spawnPoint.x;
-            target.z = spawnPoint.z;
-            target.health = PLAYER_HEALTH;
-            target.ammo = WEAPONS[target.weapon].ammo;
-          }
-        }, 5000);
       }
     }
   }
 
-  checkCollisions(obj1, obj2) {
+  checkCollision(obj1, obj2) {
     return (
       obj1.x < obj2.x + obj2.width &&
       obj1.x + obj1.width > obj2.x &&
@@ -193,11 +171,19 @@ class GameManager {
   }
 
   gameLoop() {
-    setInterval(() => {
-      this.gameTime += 16;
-      this.checkCollisions();
-    }, 16);
+    const now = Date.now();
+    const deltaTime = now - this.lastUpdateTime;
+    this.lastUpdateTime = now;
+    
+    this.checkCollisions();
+    
+    // Обновление позиций пуль
+    this.bullets.forEach(bullet => {
+      bullet.x += Math.sin(bullet.rotation) * bullet.speed * deltaTime / 1000;
+      bullet.z += Math.cos(bullet.rotation) * bullet.speed * deltaTime / 1000;
+    });
+    
+    // Планирование следующего обновления
+    setTimeout(() => this.gameLoop(), 16);
   }
 }
-
-module.exports = GameManager;
