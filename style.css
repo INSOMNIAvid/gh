@@ -1,5 +1,47 @@
 body {
     margin: 0;
     overflow: hidden;
-    font-family: Arial, sans-serif;
+    font-family: 'Arial', sans-serif;
+}
+
+#hud {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    padding: 10px;
+    color: white;
+    text-shadow: 1px 1px 2px black;
+    pointer-events: none;
+}
+
+#health {
+    position: absolute;
+    left: 20px;
+    top: 20px;
+    font-size: 24px;
+}
+
+#ammo {
+    position: absolute;
+    right: 20px;
+    bottom: 20px;
+    font-size: 24px;
+}
+
+#weapon {
+    position: absolute;
+    left: 20px;
+    bottom: 20px;
+    font-size: 24px;
+}
+
+#crosshair {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 32px;
+    color: white;
+    text-shadow: 0 0 5px black;
 }
